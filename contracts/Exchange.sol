@@ -31,7 +31,6 @@ contract Exchange {
 		address tokenGive;
 		uint256 amountGive;
 		uint256 timestamp; 	// when order was created
-		// orderStatus;  ??
 	}
 
 	event Deposit(address token, address user, uint256 amount, uint256 balance);
