@@ -2,24 +2,24 @@
 pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
-import "./Token.sol";			// imports our other contract for use here
+import "./Token.sol";			// imports our Token contract for use here
 
 contract Exchange {
-	address public feeAccount;	// public to read outside the blockchain
-	uint256 public feePercent;
-	uint256 public orderCount;
+	address public feeAccount;	// public; can read outside the blockchain
+	uint256 public feePercent;	// account to receive fees & the fee % to charge
+	uint256 public orderCount;	// these are auto-set to zero if not initialized
 
 	// set up mapping to track user balances
 	// 'tokens' = nested mapping of token address to user address to #of tokens
 	mapping(address => mapping(address => uint256)) public tokens;
 	
-	// Orders mapping ... ID to the Order struct
+	// orders mapping ... order ID to the Order struct
 	mapping(uint256 => _Order) public orders;
 
 	// mapping of cancelled orders
 	mapping(uint256 => bool) public orderCancelled;
 
-	// mapping of cancelled orders
+	// mapping of filled orders
 	mapping(uint256 => bool) public orderFilled;
 
 	// Order struct
@@ -68,32 +68,35 @@ contract Exchange {
 	);
 
 
-	// Track Fee Account
+	// constructor to create an exchange, with fee account and fee %
 	constructor(address _feeAccount, uint256 _feePercent) {
 		feeAccount = _feeAccount;
 		feePercent = _feePercent;
 	}
 
-	// ------------------------
-	// DEPOSIT & WITHDRAW TOKEN
+	// -------------------------
+	// DEPOSIT & WITHDRAW TOKENS
 
 	function depositToken(address _token, uint256 _amount) public {
-		// transfer tokens to exchange; 'require' protects from updating if txfer fails
+
+		// transfer tokens to exchange; 
+		// 	'require' protects from updating if txfer fails
+		//	'msg.sender' is the account calling this function
+		//	'address(this)' is the account of this smart contract (the exchange)
 		require(Token(_token).transferFrom(msg.sender, address(this), _amount));
 
-		// update user balance
+		// update the balance on the exchange for this user
 		tokens[_token][msg.sender] = tokens[_token][msg.sender] + _amount;
 
 		// emit an event
 		emit Deposit(_token, msg.sender, _amount, tokens[_token][msg.sender]);
 	}
 
-	// Withdraw Tokens
 	function withdrawToken(address _token, uint256 _amount) public {
 		// ensure user has enough tokens to withdraw
 		require(tokens[_token][msg.sender] >= _amount);
-		// transfer tokens to the user
-		// use "transfer" function since the exchange holds the tokens and is the caller
+		// transfer tokens from the Exchange to the user (msg.sender)
+		// use "transfer" function since the exchange holds the tokens
 		Token(_token).transfer(msg.sender, _amount);
 
 		// update user balance
@@ -157,7 +160,7 @@ contract Exchange {
 		// storage means get it from blockchain - not memory
 		_Order storage _order = orders[_id];
 
-		// Ensure teh caller of the function is the owner of the order
+		// Ensure the caller of the function is the owner of the order
 		require(address(_order.user) == msg.sender);
 
 		// Order must exist
@@ -187,10 +190,10 @@ contract Exchange {
 		require(_id > 0 && _id <= orderCount, 'Order does not exist');
 
 		// order cannot be filled
-		require(!orderFilled[_id]);
+		require(!orderFilled[_id], 'Order has already been filled');
 
 		// order cannot be cancelled
-		require(!orderCancelled[_id]);
+		require(!orderCancelled[_id], 'Order has been cancelled');
 
 		// fetch order
 		_Order storage _order = orders[_id];
