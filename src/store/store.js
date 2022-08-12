@@ -6,11 +6,12 @@ import thunk from 'redux-thunk';
 import { composeWithDevTools } from 'redux-devtools-extension';
 
 /* Import Reducers */
-import { provider, tokens } from './reducers'	// imports from our reducers.js file
+import { provider, tokens, exchange } from './reducers'	// imports from our reducers.js file
 
 const reducer = combineReducers({				// save all reducers in one
 	provider,
-	tokens
+	tokens,
+	exchange
 })
 
 const initialState = {}							// initial state is empty

@@ -8,7 +8,8 @@ import {
   loadProvider,
   loadNetwork,
   loadAccount,
-  loadToken
+  loadTokens,
+  loadExchange
 } from '../store/interactions';
 
 function App() {
@@ -20,19 +21,26 @@ function App() {
   //---------------------------------------------------------------------------
   const loadBlockchainData = async () => {
 
-    // fetch the current account (loadAccount talks to Metamask to get accounts)
-    // need to pass the dispatch function so the action can be dispatched
-    await loadAccount(dispatch)
 
     // connect ethers js library to the blockchain 
     // Note: the 'provider' exposes the connection to the blockchain node
+    // Note: need to pass in the dispatch function so action can be dispatched
     const provider = loadProvider(dispatch)
 
-    // Fetch the network information via the provider connection
+    // Fetch the network chainId via the provider (hardhat: 31337, kovan: 42)
     const chainId = await loadNetwork(provider, dispatch)
 
-    // fetch the DApp Token's smart contract from the blockchain
-    await loadToken(provider, config[chainId].DApp.address, dispatch)
+    // fetch the current account info from Metamask
+    await loadAccount(provider, dispatch)
+
+    // fetch the Token smart contracts from the blockchain
+    const DApp = config[chainId].DApp
+    const mETH = config[chainId].mETH
+    await loadTokens(provider, [DApp.address, mETH.address], dispatch)
+
+    // load Exchange smart contract
+    const exchangeConfig = config[chainId].exchange
+    await loadExchange(provider, exchangeConfig.address, dispatch)
   }
 
   //---------------------------------------------------------------------------

@@ -4,7 +4,8 @@
 import { ethers } from 'ethers'
 // Note: abis/Token.json was copied from within artifacts/contracts/Token.sol/Token.json
 // Note2: if Token contract is modified, must re-create the abis/Token.json
-import TOKEN_ABI from '../abis/Token.json';
+import TOKEN_ABI from '../abis/Token.json'
+import EXCHANGE_ABI from '../abis/Exchange.json'
 
 // loadProvider connects us to the blockchain, dispatches the action, returns connection
 export const loadProvider = (dispatch) => {
@@ -23,7 +24,7 @@ export const loadNetwork = async (provider, dispatch) => {
 	return chainId
 }
 
-export const loadAccount = async (dispatch) => {
+export const loadAccount = async (provider, dispatch) => {
 	// Note: standard method to make an rpc call to our node to get accounts from MetaMask
 	const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
 	// Note: the below util ensures the address is in the correct format
@@ -31,17 +32,35 @@ export const loadAccount = async (dispatch) => {
 
 	dispatch({ type: 'ACCOUNT_LOADED', account })
 
+	// get the account ETH balance
+	let balance = await provider.getBalance(account)
+	balance = ethers.utils.formatEther(balance)
+
+	dispatch({ type: 'ETHER_BALANCE_LOADED', balance })
+
 	return account
 }
 
-// create an instance of the Token smart contract, so we can interact with it
-export const loadToken = async (provider, address, dispatch) => {
+// create an instance of the Token smart contracts, so we can interact with them
+export const loadTokens = async (provider, addresses, dispatch) => {
 	let token, symbol
 
 	// See Note for TOKEN_ABI above
-	token = new ethers.Contract(address, TOKEN_ABI, provider)
+	token = new ethers.Contract(addresses[0], TOKEN_ABI, provider)
 	symbol = await token.symbol()
-	dispatch({ type: 'TOKEN_LOADED', token, symbol })
+	dispatch({ type: 'TOKEN_1_LOADED', token, symbol })
+
+	token = new ethers.Contract(addresses[1], TOKEN_ABI, provider)
+	symbol = await token.symbol()
+	dispatch({ type: 'TOKEN_2_LOADED', token, symbol })
 
 	return token
+}
+
+// create an instance of the Exchange smart contract
+export const loadExchange = async (provider, address, dispatch) => {
+	const exchange = new ethers.Contract(address, EXCHANGE_ABI, provider)
+	dispatch({ type: 'EXCHANGE_LOADED', exchange })
+
+	return exchange
 }
