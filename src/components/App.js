@@ -1,7 +1,7 @@
 import { useEffect } from 'react';    // see note on useEffect() below
 import { useDispatch } from 'react-redux'
 // Note: if smart contract is modified/redeployed, must update config.json
-import config from '../config.json';
+import config from '../config.json'
 
 // import our actions from interactions.js
 import { 
@@ -12,6 +12,8 @@ import {
   loadExchange
 } from '../store/interactions';
 
+import Navbar from './Navbar'
+
 function App() {
   // use the dispatch function imported from Redux, to dispatch actions
   const dispatch = useDispatch()    
@@ -21,7 +23,6 @@ function App() {
   //---------------------------------------------------------------------------
   const loadBlockchainData = async () => {
 
-
     // connect ethers js library to the blockchain 
     // Note: the 'provider' exposes the connection to the blockchain node
     // Note: need to pass in the dispatch function so action can be dispatched
@@ -30,8 +31,15 @@ function App() {
     // Fetch the network chainId via the provider (hardhat: 31337, kovan: 42)
     const chainId = await loadNetwork(provider, dispatch)
 
-    // fetch the current account info from Metamask
-    await loadAccount(provider, dispatch)
+    // Reload page when network changes
+    window.ethereum.on('chainChanged', () => {
+      window.location.reload()
+    })
+
+    // fetch the current account info from Metamask when changed
+    window.ethereum.on('accountsChanged', () => {
+      loadAccount(provider, dispatch)
+    })
 
     // fetch the Token smart contracts from the blockchain
     const DApp = config[chainId].DApp
@@ -61,7 +69,7 @@ function App() {
   return (
     <div>
 
-      {/* Navbar */}
+      <Navbar />
 
       <main className='exchange grid'>
         <section className='exchange__section--left grid'>
