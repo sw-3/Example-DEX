@@ -7,12 +7,11 @@ const Markets = () => {
 	// pull the data from the current state with useSelector
 	const provider = useSelector(state => state.provider.connection)
 	const chainId = useSelector(state => state.provider.chainId)
-	//const account = useSelector(state => state.provider.account)
-	//const balance = useSelector(state => state.provider.balance)
 
 	const dispatch = useDispatch()
 
 	const marketHandler = async (e) => {
+		// use loadTokens to reload the pair of tokens, using the value selected
 		loadTokens(provider, (e.target.value).split(','), dispatch)
 	}
 
@@ -24,6 +23,7 @@ const Markets = () => {
 
 			{chainId && config[chainId] ? (
 				<select name="markets" id="markets" onChange={marketHandler}>
+					// value = the Token contract address for each token in the pair
 					<option value={`${config[chainId].DApp.address},${config[chainId].mETH.address}`}>DApp / mETH</option>
 					<option value={`${config[chainId].DApp.address},${config[chainId].mDAI.address}`}>DApp / mDAI</option>
 				</select>

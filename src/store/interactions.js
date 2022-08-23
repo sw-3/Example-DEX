@@ -64,3 +64,59 @@ export const loadExchange = async (provider, address, dispatch) => {
 
 	return exchange
 }
+
+// subscribeToEvents
+// subscribe/respond to blockchain events
+// --------------------------------------------------------------------------------
+export const subscribeToEvents = (exchange, dispatch) => {
+	// 'Deposit' event, emitted from the exchange contract's depositToken function
+	exchange.on('Deposit', (token, user, amount, balance, event) => {
+		// dispatch that a transfer was successful
+		dispatch({ type: 'TRANSFER_SUCCESS', event })
+	})
+}
+
+// --------------------------------------------------------------------------
+// LOAD USER BALANCES (WALLET & EXCHANGE)
+
+export const loadBalances = async (exchange, tokens, account, dispatch) => {
+	let balance = ethers.utils.formatUnits(await tokens[0].balanceOf(account), 18)
+	dispatch({ type: 'TOKEN_1_BALANCE_LOADED', balance })
+
+	balance = ethers.utils.formatUnits(await exchange.balanceOf(tokens[0].address, account), 18)
+	dispatch({ type: 'EXCHANGE_TOKEN_1_BALANCE_LOADED', balance })
+
+	balance = ethers.utils.formatUnits(await tokens[1].balanceOf(account), 18)
+	dispatch({ type: 'TOKEN_2_BALANCE_LOADED', balance })
+
+	balance = ethers.utils.formatUnits(await exchange.balanceOf(tokens[1].address, account), 18)
+	dispatch({ type: 'EXCHANGE_TOKEN_2_BALANCE_LOADED', balance })
+}
+
+// --------------------------------------------------------------------------
+// TRANSFER TOKENS (DEPOSIT & WITHDRAWS)
+
+export const transferTokens = async (provider, exchange, transferType, token, amount, dispatch) => {
+	let transaction
+
+	// Notify app that transfer request has been made
+	// The reducer will create a 'pending' state, while the user interacts with Metamask
+	dispatch({ type: 'TRANSFER_REQUEST' })
+
+	try {
+		// get signer from Metamask
+		const signer = await provider.getSigner()
+
+		const amountToTransfer = ethers.utils.parseUnits(amount.toString(), 18)
+		
+		// approve the token, then deposit the amount
+		transaction = await token.connect(signer).approve(exchange.address, amountToTransfer)
+		await transaction.wait()
+		transaction = await exchange.connect(signer).depositToken(token.address, amountToTransfer)
+		await transaction.wait()
+
+	} catch(error) {
+		// Notify the app if the transfer failed
+		dispatch({ type: 'TRANSFER_FAIL' })
+	}	
+}
