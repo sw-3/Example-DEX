@@ -115,6 +115,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				},
 				transferInProgress: true
 			}
+		// update the state when a transfer has been successfully completed
 		case 'TRANSFER_SUCCESS':
 			return {
 				...state,
@@ -126,6 +127,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				transferInProgress: false,
 				events: [action.event, ...state.events]
 			}
+		// update the state when a transfer has failed
 		case 'TRANSFER_FAIL':
 			return {
 				...state,

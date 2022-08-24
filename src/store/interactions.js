@@ -74,6 +74,11 @@ export const subscribeToEvents = (exchange, dispatch) => {
 		// dispatch that a transfer was successful
 		dispatch({ type: 'TRANSFER_SUCCESS', event })
 	})
+	// 'Withdraw' event, emitted from the exchange contract's withdrawToken function
+	exchange.on('Withdraw', (token, user, amount, balance, event) => {
+		// dispatch that a transfer was successful
+		dispatch({ type: 'TRANSFER_SUCCESS', event })
+	})
 }
 
 // --------------------------------------------------------------------------
@@ -106,13 +111,19 @@ export const transferTokens = async (provider, exchange, transferType, token, am
 	try {
 		// get signer from Metamask
 		const signer = await provider.getSigner()
-
 		const amountToTransfer = ethers.utils.parseUnits(amount.toString(), 18)
-		
-		// approve the token, then deposit the amount
-		transaction = await token.connect(signer).approve(exchange.address, amountToTransfer)
-		await transaction.wait()
-		transaction = await exchange.connect(signer).depositToken(token.address, amountToTransfer)
+
+		if (transferType === 'Deposit') {		
+			// approve the token first
+			transaction = await token.connect(signer).approve(exchange.address, amountToTransfer)
+			await transaction.wait()
+			// ... now transfer the amount
+			transaction = await exchange.connect(signer).depositToken(token.address, amountToTransfer)
+		} else {
+			// transfer the withdrawal amount
+			transaction = await exchange.connect(signer).withdrawToken(token.address, amountToTransfer)
+		}
+
 		await transaction.wait()
 
 	} catch(error) {
