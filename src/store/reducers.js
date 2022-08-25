@@ -1,3 +1,8 @@
+// reducers.js
+// Reducers handle the various application Actions; they receive state data
+//		from the blockchain, which has changed because of the Action, and they
+//		update the internal Redux state within the web application.
+
 // 'provider' reducer
 //		handles dispatched actions related to the blockchain node connection
 //-----------------------------------------------------------------------------

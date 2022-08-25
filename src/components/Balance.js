@@ -8,7 +8,11 @@ import eth from '../assets/eth.svg'
 import { loadBalances, transferTokens } from '../store/interactions'
 
 const Balance = () => {
-  // these 2 vars track the state of the 2 amounts in the fields on the page
+  // Note: useState() allows access to the React component state, for
+  //    this Balance component.  (Not the Redux global state)
+
+  // these vars track the value of the 2 amounts in the fields on the page
+  // set the var by using the 2nd as a function: setToken1TransferAmount(1.0)
   const [token1TransferAmount, setToken1TransferAmount] = useState(0)
   const [token2TransferAmount, setToken2TransferAmount] = useState(0)
   // track the state of the Deposit/Withdraw tab
@@ -21,12 +25,16 @@ const Balance = () => {
 
   const exchange = useSelector(state => state.exchange.contract)
   const exchangeBalances = useSelector(state => state.exchange.balances)
+
+  // whenever transferInProgress changes, we want to reload the Balances component
   const transferInProgress = useSelector(state => state.exchange.transferInProgress)
 
   const tokens = useSelector(state => state.tokens.contracts)
   const symbols = useSelector(state => state.tokens.symbols)
   const tokenBalances = useSelector(state => state.tokens.balances)
 
+  // create a reference to the tabs, so we can change highlight class on them
+  // attach these to the button elements in the HTML with "ref="
   const depositRef = useRef(null)     // reference to the deposit tab
   const withdrawRef = useRef(null)    // reference to the withdraw tab
 
@@ -56,6 +64,7 @@ const Balance = () => {
     // prevent the default behavior (page refresh), when Submit event received
     e.preventDefault()    
     
+    // execute the transferToken Action
     if (token.address === tokens[0].address) {
       transferTokens(provider, exchange, 'Deposit', token, token1TransferAmount, dispatch)
       // clear the deposit amount field
@@ -84,12 +93,21 @@ const Balance = () => {
     }
   }
 
+  // Note: useEffect() takes a function to execute, plus array of args for the function
+  // Note2:   if any of the last array of args changes, the function will execute again
+  //
+  // this will load the user balances from the blockchain for the token pair
   useEffect(() => {
     if (exchange && tokens[0] && tokens[1] && account) {
       loadBalances(exchange, tokens, account, dispatch)
     }
   }, [exchange, tokens, account, transferInProgress])
 
+
+// NOTE: everything inside the return(..) below is what renders on the page.
+// NOTE: {symbols && symbols[0]} is a short-hand 'if'. If symbols exists, display symbols[0]
+// Note: '===' ensures that the vars type is the same also
+// Note: the things displayed here must be first stored/retrieved from the Redux state.
   return (
     <div className='component exchange__transfers'>
       <div className='component__header flex-between'>

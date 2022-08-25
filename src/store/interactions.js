@@ -1,5 +1,5 @@
 // interactions.js
-//		code for the action logic
+//		code for the application's Action logic
 
 import { ethers } from 'ethers'
 // Note: abis/Token.json was copied from within artifacts/contracts/Token.sol/Token.json
@@ -66,10 +66,11 @@ export const loadExchange = async (provider, address, dispatch) => {
 }
 
 // subscribeToEvents
-// subscribe/respond to blockchain events
+// subscribe/respond to blockchain events, emitted from smart contracts
 // --------------------------------------------------------------------------------
 export const subscribeToEvents = (exchange, dispatch) => {
 	// 'Deposit' event, emitted from the exchange contract's depositToken function
+	// Note: the last argument is always the 'event' that was emitted, by default
 	exchange.on('Deposit', (token, user, amount, balance, event) => {
 		// dispatch that a transfer was successful
 		dispatch({ type: 'TRANSFER_SUCCESS', event })
@@ -82,7 +83,7 @@ export const subscribeToEvents = (exchange, dispatch) => {
 }
 
 // --------------------------------------------------------------------------
-// LOAD USER BALANCES (WALLET & EXCHANGE)
+// LOAD USER BALANCES (WALLET & EXCHANGE) from Blockchain
 
 export const loadBalances = async (exchange, tokens, account, dispatch) => {
 	let balance = ethers.utils.formatUnits(await tokens[0].balanceOf(account), 18)
@@ -120,7 +121,7 @@ export const transferTokens = async (provider, exchange, transferType, token, am
 			// ... now transfer the amount
 			transaction = await exchange.connect(signer).depositToken(token.address, amountToTransfer)
 		} else {
-			// transfer the withdrawal amount
+			// transfer the withdrawal amount; withdraws don't need permission/approval
 			transaction = await exchange.connect(signer).withdrawToken(token.address, amountToTransfer)
 		}
 

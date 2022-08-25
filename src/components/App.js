@@ -53,7 +53,7 @@ function App() {
     const exchangeConfig = config[chainId].exchange
     const exchange = await loadExchange(provider, exchangeConfig.address, dispatch)
 
-    // listen to events
+    // listen to events, emitted from the Smart Contracts on the blockchain
     subscribeToEvents(exchange, dispatch)
   }
 
