@@ -80,6 +80,12 @@ export const subscribeToEvents = (exchange, dispatch) => {
 		// dispatch that a transfer was successful
 		dispatch({ type: 'TRANSFER_SUCCESS', event })
 	})
+	// 'Order' event, emitted from the exchange contract's makeOrder function
+	exchange.on('Order', (id, user, tokenGet, amountGet, tokenGive, amountGive, timestamp, event) => {
+		// dispatch that a transfer was successful
+		const order = event.args
+		dispatch({ type: 'NEW_ORDER_SUCCESS', order, event })
+	})
 }
 
 // --------------------------------------------------------------------------
@@ -131,4 +137,50 @@ export const transferTokens = async (provider, exchange, transferType, token, am
 		// Notify the app if the transfer failed
 		dispatch({ type: 'TRANSFER_FAIL' })
 	}	
+}
+
+// --------------------------------------------------------------------------
+// ORDERS (BUY & SELL)
+
+export const makeBuyOrder = async (provider, exchange, tokens, order, dispatch) => {
+
+	const tokenGet = tokens[0].address
+	// order.amount and order.price were entered into the UI fields
+	const amountGet = ethers.utils.parseUnits(order.amount, 18)
+	const tokenGive = tokens[1].address
+	const amountGive = ethers.utils.parseUnits((order.amount * order.price).toString(), 18)
+
+	// Notify app that a make Order request has been made
+	dispatch({ type: 'NEW_ORDER_REQUEST' })
+
+	try {
+		const signer = await provider.getSigner()
+		const transaction = await exchange.connect(signer).makeOrder(tokenGet, amountGet, tokenGive, amountGive)
+		await transaction.wait()
+	} catch(error) {
+		// Notify app the make order failed
+		dispatch({ type: 'NEW_ORDER_FAIL' })
+	}
+}
+
+export const makeSellOrder = async (provider, exchange, tokens, order, dispatch) => {
+	// Note: sell is the reverse of buy
+	
+	const tokenGet = tokens[1].address
+	// order.amount and order.price were entered into the UI fields
+	const amountGet = ethers.utils.parseUnits((order.amount * order.price).toString(), 18)
+	const tokenGive = tokens[0].address
+	const amountGive = ethers.utils.parseUnits(order.amount, 18)
+
+	// Notify app that a make Order request has been made
+	dispatch({ type: 'NEW_ORDER_REQUEST' })
+
+	try {
+		const signer = await provider.getSigner()
+		const transaction = await exchange.connect(signer).makeOrder(tokenGet, amountGet, tokenGive, amountGive)
+		await transaction.wait()
+	} catch(error) {
+		// Notify app the make order failed
+		dispatch({ type: 'NEW_ORDER_FAIL' })
+	}
 }

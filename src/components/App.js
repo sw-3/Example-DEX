@@ -16,6 +16,7 @@ import {
 import Navbar from './Navbar'
 import Markets from './Markets'
 import Balance from './Balance'
+import Order from './Order'
 
 function App() {
   // use the dispatch function imported from Redux, to dispatch actions
@@ -84,7 +85,7 @@ function App() {
 
           <Balance />
 
-          {/* Order */}
+          <Order />
 
         </section>
         <section className='exchange__section--right grid'>
