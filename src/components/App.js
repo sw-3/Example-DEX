@@ -19,6 +19,7 @@ import Markets from './Markets'
 import Balance from './Balance'
 import Order from './Order'
 import OrderBook from './OrderBook'
+import PriceChart from './PriceChart'
 
 function App() {
   // use the dispatch function imported from Redux, to dispatch actions
@@ -95,7 +96,7 @@ function App() {
         </section>
         <section className='exchange__section--right grid'>
 
-          {/* PriceChart */}
+          <PriceChart />
 
           {/* Transactions */}
 

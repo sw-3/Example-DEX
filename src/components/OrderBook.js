@@ -19,11 +19,14 @@ const OrderBook = () => {
 
       <div className="flex">
 
+        {/* if no order book, or no sell orders exist, handle this first */}
         {!orderBook || orderBook.sellOrders.length === 0 ? (
           <p className='flex-center'>No Sell Orders</p>
         ) : (
           <table className='exchange__orderbook--sell'>
             <caption>Selling</caption>
+
+            {/* HEADING FOR SELL ORDERS... */}
             <thead>
               <tr>
                 <th>{symbols && symbols[0]}<img src={sort} alt="Sort" /></th>
@@ -31,10 +34,10 @@ const OrderBook = () => {
                 <th>{symbols && symbols[1]}<img src={sort} alt="Sort" /></th>
               </tr>
             </thead>
+
+            {/* DISPLAY SELL ORDERS (USE MAPPING)... */}
+
             <tbody>
-
-              {/* MAPPING OF SELL ORDERS... */}
-
               {orderBook && orderBook.sellOrders.map((order, index) => {
                 return(
                   <tr key={index}>
@@ -64,7 +67,7 @@ const OrderBook = () => {
             </thead>
             <tbody>
 
-              {/* MAPPING OF BUY ORDERS... */}
+              {/* DISPLAY BUY ORDERS (USE MAPPING)... */}
               
               {orderBook && orderBook.buyOrders.map((order, index) => {
                 return(

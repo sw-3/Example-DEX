@@ -114,6 +114,8 @@ export const loadAllOrders = async (provider, exchange, dispatch) => {
 
 	// fetch canceled orders
 	// Note: queryFilter gets all Events of a certain type between 2 blocks
+	//		we grab all arguments from the Event itself, to create the list
+	//		of orders.
 	const cancelStream = await exchange.queryFilter('Cancel', 0, block)
 	const cancelledOrders = cancelStream.map(event => event.args)
 
