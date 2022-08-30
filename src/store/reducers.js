@@ -131,6 +131,47 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 			}
 
 		// ------------------------------------------------------------------------------
+		// CANCEL ORDER CASES
+		case 'ORDER_CANCEL_REQUEST':
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Cancel',
+					isPending: true,
+					isSuccessful: false
+				},
+			}
+		// update the state when a cancel has been successfully completed
+		case 'ORDER_CANCEL_SUCCESS':
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Cancel',
+					isPending: false,
+					isSuccessful: true
+				},
+				cancelledOrders: {
+					...state.cancelledOrders,
+					data: [
+						...state.cancelledOrders.data,
+						action.order
+					]
+				},
+				events: [action.event, ...state.events]
+			}
+		// update the state when a Cancel has failed
+		case 'ORDER_CANCEL_FAIL':
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Cancel',
+					isPending: false,
+					isSuccessful: false,
+					isError: true
+				},
+			}
+
+		// ------------------------------------------------------------------------------
 		// BALANCE CASES
 
 		case 'EXCHANGE_TOKEN_1_BALANCE_LOADED':

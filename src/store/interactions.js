@@ -69,6 +69,12 @@ export const loadExchange = async (provider, address, dispatch) => {
 // subscribe/respond to blockchain events, emitted from smart contracts
 // --------------------------------------------------------------------------------
 export const subscribeToEvents = (exchange, dispatch) => {
+	// 'Cancel event, emitted from the exchange contract's cancelOrder function
+	exchange.on('Cancel', (id, user, tokenGet, amountGet, tokenGive, amountGive, timestamp, event) => {
+		// dispatch that a transfer was successful
+		const order = event.args
+		dispatch({ type: 'ORDER_CANCEL_SUCCESS', order, event })
+	})
 	// 'Deposit' event, emitted from the exchange contract's depositToken function
 	// Note: the last argument is always the 'event' that was emitted, by default
 	exchange.on('Deposit', (token, user, amount, balance, event) => {
@@ -212,4 +218,23 @@ export const makeSellOrder = async (provider, exchange, tokens, order, dispatch)
 		// Notify app the make order failed
 		dispatch({ type: 'NEW_ORDER_FAIL' })
 	}
+}
+
+// --------------------------------------------------------------------------
+// CANCEL ORDER
+
+export const cancelOrder = async (provider, exchange, order, dispatch) => {
+
+	// Notify app that a cancel Order request has been made
+	dispatch({ type: 'ORDER_CANCEL_REQUEST' })
+
+	try {
+		const signer = await provider.getSigner()
+		const transaction = await exchange.connect(signer).cancelOrder(order.id)
+		await transaction.wait()
+	} catch(error) {
+		// Notify app the cancel failed
+		dispatch({ type: 'ORDER_CANCEL_FAIL' })
+	}
+
 }
