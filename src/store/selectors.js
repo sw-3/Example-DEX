@@ -75,6 +75,76 @@ const decorateOrder = (order, tokens) => {
 }
 
 // -------------------------------------------------------------------------------------------
+// FILLED ORDERS
+
+export const filledOrdersSelector = createSelector(
+	filledOrders,
+	tokens,
+	(orders, tokens) => {
+		// make sure we have both tokens loaded
+		if (!tokens[0] || !tokens[1]) { return }
+
+		// filter orders by selected tokens
+		orders = orders.filter((o) => o.tokenGet === tokens[0].address || o.tokenGet === tokens[1].address)
+		orders = orders.filter((o) => o.tokenGive === tokens[0].address || o.tokenGive === tokens[1].address)
+
+		// sort orders by time ascending for price comparison
+		orders = orders.sort((a,b) => a.timestamp - b.timestamp)
+
+		// decorate orders
+		orders = decorateFilledOrders(orders, tokens)
+
+		// sort orders by time ascending for UI
+		orders = orders.sort((a,b) => b.timestamp - a.timestamp)
+
+		return orders
+	}
+)
+
+const decorateFilledOrders = (orders, tokens) => {
+	// track previous order to compare history
+	let previousOrder = orders[0]
+
+	return (
+		orders.map((order) => {
+			// decorate each individual order
+
+			// start with the basics ... gives the formatted price
+			order = decorateOrder(order, tokens)
+
+			// add the color for the UI, based on price of previous
+			order = decorateFilledOrder(order, previousOrder)
+			previousOrder = order
+
+			return order
+		})
+	)
+}
+
+const decorateFilledOrder = (order, previousOrder) => {
+
+	return({
+		...order,
+		tokenPriceClass: tokenPriceClass(order.tokenPrice, order.id, previousOrder)
+	})
+}
+
+const tokenPriceClass = (tokenPrice, orderId, previousOrder) => {
+	// show GREEN amount if only one order exists
+	if (previousOrder.id === orderId) {
+		return GREEN
+	}
+
+	// show GREEN amount if order price higher than previous order price
+	// show RED amount if order price lower than previous order price
+	if (previousOrder.tokenPrice <= tokenPrice) {
+		return GREEN
+	} else {
+		return RED
+	}
+}
+
+// -------------------------------------------------------------------------------------------
 // ORDER BOOK
 
 // Note: createSelector Accepts one or more "input selectors" (either as separate arguments or 
