@@ -148,6 +148,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				},
 			}
 		// update the state when a cancel has been successfully completed
+		// Note: events is updated with the current event FIRST, in front of existing
 		case 'ORDER_CANCEL_SUCCESS':
 			return {
 				...state,
@@ -201,6 +202,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				data = state.filledOrders.data
 			}
 
+			// Note: events is updated with the current event FIRST, in front of existing
 			return {
 				...state,
 				transaction: {
@@ -255,6 +257,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				transferInProgress: true
 			}
 		// update the state when a transfer has been successfully completed
+		// Note: events is updated with the current event FIRST, in front of existing
 		case 'TRANSFER_SUCCESS':
 			return {
 				...state,
@@ -306,6 +309,7 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 				data = state.allOrders.data
 			}
 
+			// Note: events is updated with the current event FIRST, in front of existing
 			return {
 				...state,
 				allOrders: {

@@ -15,6 +15,7 @@ const RED = '#F45353'
 
 const tokens = state => get(state, 'tokens.contracts')
 const account = state => get(state, 'provider.account')
+const events = state => get(state, 'exchange.events')
 
 // functions to return various stuff when passed the state
 // these order types are loaded from the exchange in the Redux state
@@ -44,6 +45,19 @@ const openOrders = state => {
 
 	return openOrders
 }
+
+// -------------------------------------------------------------------------------------------
+// MY EVENTS
+
+export const myEventsSelector = createSelector(
+	account,
+	events,
+	(account, events) => {
+
+		events = events.filter((e) => e.args.user === account)
+		return events
+	}
+)
 
 // -------------------------------------------------------------------------------------------
 // MY OPEN ORDERS
