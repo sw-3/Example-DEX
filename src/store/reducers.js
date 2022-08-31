@@ -88,6 +88,12 @@ const DEFAULT_EXCHANGE_STATE = {
 		loaded: false,
 		data: []
 	},
+	cancelledOrders: {
+		data: []
+	},
+	filledOrders: {
+		data: []
+	},
 	events: []
 }
 
@@ -172,6 +178,55 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 			}
 
 		// ------------------------------------------------------------------------------
+		// FILLING ORDERS
+		case 'ORDER_FILL_REQUEST':
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Fill Order',
+					isPending: true,
+					isSuccessful: false
+				},
+			}
+		case 'ORDER_FILL_SUCCESS':
+			// prevent duplicate orders
+			// if order already exists, it's ID will be returned, else -1 is returned 
+			index = state.filledOrders.data.findIndex(order => order.id.toString() === action.order.id.toString())
+
+			if(index === -1) {
+				// new order; add to data
+				data = [...state.filledOrders.data, action.order]
+			} else {
+				// found index of already-existing order; do not add to data
+				data = state.filledOrders.data
+			}
+
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Fill Order',
+					isPending: false,
+					isSuccessful: true
+				},
+				filledOrders: {
+					...state.filledOrders,
+					data
+				},
+				events: [action.event, ...state.events]
+			}
+		// update the state when a Cancel has failed
+		case 'ORDER_FILL_FAIL':
+			return {
+				...state,
+				transaction: {
+					transactionType: 'Fill Order',
+					isPending: false,
+					isSuccessful: false,
+					isError: true
+				},
+			}
+
+		// ------------------------------------------------------------------------------
 		// BALANCE CASES
 
 		case 'EXCHANGE_TOKEN_1_BALANCE_LOADED':
@@ -240,11 +295,14 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
 		// add the new Order data to the "allOrders" state item
 		case 'NEW_ORDER_SUCCESS':
 			// prevent duplicate orders
+			// if order already exists, it's ID will be returned, else -1 is returned 
 			index = state.allOrders.data.findIndex(order => order.id.toString() === action.order.id.toString())
 
 			if(index === -1) {
+				// new order; add to data
 				data = [...state.allOrders.data, action.order]
 			} else {
+				// found index of already-existing order; do not add to data
 				data = state.allOrders.data
 			}
 

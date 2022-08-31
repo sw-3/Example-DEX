@@ -75,6 +75,12 @@ export const subscribeToEvents = (exchange, dispatch) => {
 		const order = event.args
 		dispatch({ type: 'ORDER_CANCEL_SUCCESS', order, event })
 	})
+	// 'Trade event, emitted from the exchange contract's fillOrder function
+	exchange.on('Trade', (id, user, tokenGet, amountGet, tokenGive, amountGive, creator, timestamp, event) => {
+		// dispatch that a transfer was successful
+		const order = event.args
+		dispatch({ type: 'ORDER_FILL_SUCCESS', order, event })
+	})
 	// 'Deposit' event, emitted from the exchange contract's depositToken function
 	// Note: the last argument is always the 'event' that was emitted, by default
 	exchange.on('Deposit', (token, user, amount, balance, event) => {
@@ -236,5 +242,23 @@ export const cancelOrder = async (provider, exchange, order, dispatch) => {
 		// Notify app the cancel failed
 		dispatch({ type: 'ORDER_CANCEL_FAIL' })
 	}
+}
 
+// --------------------------------------------------------------------------
+// CANCEL ORDER
+
+export const fillOrder = async (provider, exchange, order, dispatch) => {
+
+	// Notify app that a Fill Order request has been made
+	dispatch({ type: 'ORDER_FILL_REQUEST' })
+
+	// call the fillOrder function in the Exchange smart contract
+	try {
+		const signer = await provider.getSigner()
+		const transaction = await exchange.connect(signer).fillOrder(order.id)
+		await transaction.wait()
+	} catch(error) {
+		// Notify app the transaction failed
+		dispatch({ type: 'ORDER_FILL_FAIL' })
+	}
 }
