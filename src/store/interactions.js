@@ -245,7 +245,7 @@ export const cancelOrder = async (provider, exchange, order, dispatch) => {
 }
 
 // --------------------------------------------------------------------------
-// CANCEL ORDER
+// FILL ORDER
 
 export const fillOrder = async (provider, exchange, order, dispatch) => {
 

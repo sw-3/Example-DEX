@@ -111,8 +111,8 @@ async function main() {
 	result = await transaction.wait()
 	console.log(`Filled order from ${user2.address}\n`)
 
-	// wait 1 second
-	await wait(1)
+	// wait
+	await wait(18)
 
 	// user1 makes another order
 	transaction = await exchange.connect(user1).makeOrder(mETH.address, tokens(50), DApp.address, tokens(15))
@@ -125,7 +125,7 @@ async function main() {
 	result = await transaction.wait()
 	console.log(`Filled order from ${user2.address}\n`)
 
-	await wait(1)
+	await wait(18)
 
 	// user1 makes final order
 	transaction = await exchange.connect(user1).makeOrder(mETH.address, tokens(200), DApp.address, tokens(20))
@@ -145,24 +145,43 @@ async function main() {
 	//
 
 	// user1 makes orders
-	for (let i = 1; i <= 10; i++) {
+	let i
+	for (i = 1; i <= 10; i++) {
 		transaction = await exchange.connect(user1).makeOrder(mETH.address, tokens(10*i), DApp.address, tokens(10))
 		result = await transaction.wait()
 
 		console.log(`Made order from ${user1.address}`)
 
-		await wait(1)
+		// user2 fills the first 5 orders
+		if (i < 6) {
+			orderId = result.events[0].args.id
+			transaction = await exchange.connect(user2).fillOrder(orderId)
+			result = await transaction.wait()
+			console.log(`Filled order from ${user2.address}\n`)
+			await wait(18)
+		} else {
+			await wait(12)
+		}
 	}
 	console.log(`\nFinished making orders from ${user1.address}\n`)
 
 	// user2 makes orders
-	for (let i = 1; i <= 10; i++) {
+	for (i = 1; i <= 10; i++) {
 		transaction = await exchange.connect(user2).makeOrder(DApp.address, tokens(10), mETH.address, tokens(10*i))
 		result = await transaction.wait()
 
 		console.log(`Made order from ${user2.address}`)
 
-		await wait(1)
+		// user1 fills the first 5 orders
+		if (i < 6) {
+			orderId = result.events[0].args.id
+			transaction = await exchange.connect(user1).fillOrder(orderId)
+			result = await transaction.wait()
+			console.log(`Filled order from ${user1.address}\n`)
+			await wait(18)
+		} else {
+			await wait(12)
+		}
 	}
 
 }

@@ -275,6 +275,25 @@ small {
 }
 
 /* ------------------------------------------------------ */
+/* INTERVAL COMPONENT */
+
+.exchange__interval select {
+  background: var(--clr-primary);
+  color: var(--clr-text);
+  border: none;
+
+  width: 100%;
+  padding: 1em;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  appearance: none;
+  position: relative;
+}
+
+/* ------------------------------------------------------ */
 /* CHART COMPONENT */
 
 .exchange__chart {

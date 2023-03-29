@@ -13,6 +13,10 @@ import { ethers } from 'ethers'
 const GREEN = '#25CE8F'
 const RED = '#F45353'
 
+// define the # minutes represented by each candlestick
+// TODO:  Create UI selector, with options 1 min, 5 min, 15 min, 1 hr, 6 hr, 1 day, 1 week
+const CANDLESTICK_INTERVAL = 5
+
 const tokens = state => get(state, 'tokens.contracts')
 const account = state => get(state, 'provider.account')
 const events = state => get(state, 'exchange.events')
@@ -365,7 +369,7 @@ export const priceChartSelector = createSelector(
 		// decorate orders - add display attributes
 		orders = orders.map((o) => decorateOrder(o, tokens))
 
-		// get last 2 orders, to figure out whether last price was higher or lower
+/*		// get last 2 orders, to figure out whether last price was higher or lower
 		let secondLastOrder, lastOrder
 		[secondLastOrder, lastOrder] = orders.slice(orders.length - 2, orders.length)
 
@@ -380,25 +384,50 @@ export const priceChartSelector = createSelector(
 				data: buildGraphData(orders)
 			}]
 		})
+*/
+		return orders
 	}
 )
 
+/*
 // buildGraphData
 // 		Put the chart data in the format needed for the charting library
 const buildGraphData = (orders) => {
+	// Note: use startOf('minute') to produce 1 minute candlesticks. This will be further 
+	// modified to group by the interval selection in the PriceChart component
 
-	// group orders by the date they were created
-	// Note: group by 'day' for daily candlesticks... change to 'hour'
-	//		to produce hourly candlesticks. (or visa-versa)
-	orders = groupBy(orders, (o) => moment.unix(o.timestamp).startOf('hour').format())
+
+	// group orders by the time they were created, using the CANDLESTICK_INTERVAL
+	let minutesToSubtract
+	// ensure candlestick interval makes sense
+	if (CANDLESTICK_INTERVAL < 1) {
+		CANDLESTICK_INTERVAL = 1
+	}
+
+	// create a list of orders with times adjusted to the candlestick boundaries
+	let graphOrders
+	graphOrders = orders.map((o) => {
+		// get the # of minutes past the most recent candlestick interval
+		minutesToSubtract = moment.unix(o.timestamp).minute() % CANDLESTICK_INTERVAL
+
+		// subtract the correct # of seconds from the timestamp, to force the minute to
+		// be on the most recent candlestick boundary
+		o.timestamp = o.timestamp - (minutesToSubtract * 60)
+
+		return(o)
+	})
+
+	// now groupBy the minutes, since they all fall on the boundaries
+	graphOrders = groupBy(graphOrders, (o) => moment.unix(o.timestamp).startOf('minute').format())
 
 	// get the unique groupings (the specific hours or days, etc), for the 'x' value
-	const hours = Object.keys(orders)
+	//const hours = Object.keys(orders)
+	const minutes = Object.keys(graphOrders)
 
 	// build the graph series
-	const graphData = hours.map((hour) => {
+	const graphData = minutes.map((minute) => {
 		// fetch all orders from current hour
-		const group = orders[hour]
+		const group = graphOrders[minute]
 
 		// calculate price values: open, high, low, close
 		const open = group[0]						// first order
@@ -407,10 +436,11 @@ const buildGraphData = (orders) => {
 		const close = group[group.length - 1]		// last order
 
 		return({
-			x: new Date(hour),
+			x: new Date(minute),
 			y: [open.tokenPrice, high.tokenPrice, low.tokenPrice, close.tokenPrice]
 		})
 	})
 
 	return graphData
 }
+*/
